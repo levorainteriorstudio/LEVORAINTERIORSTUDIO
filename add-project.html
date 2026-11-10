@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Add a Project — LEVORA INTERIOR</title>
+<style>
+:root{--cream:#f7efe3;--paper:#fffaf4;--ink:#211a16;--muted:#766a61;--orange:#c86f3d}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.6 system-ui,sans-serif}
+main{width:min(760px,calc(100% - 32px));margin:48px auto}.panel{background:var(--paper);padding:30px;border-radius:24px;box-shadow:0 15px 40px #38271912}
+h1{line-height:1.1}p{color:var(--muted)}label{display:block;font-weight:700;font-size:13px;margin:15px 0}
+input,textarea,select{display:block;width:100%;margin-top:7px;padding:13px;border:1px solid #ddd0c3;border-radius:12px;font:inherit;background:white}
+textarea{min-height:110px}.btn{display:inline-block;border:0;border-radius:99px;background:var(--ink);color:white;padding:13px 20px;font-weight:800;cursor:pointer;margin:8px 8px 0 0}
+.btn.secondary{background:white;color:var(--ink);border:1px solid #ddd0c3}
+.notice{background:#f2e1d2;padding:14px;border-radius:14px;margin:18px 0}.small{font-size:13px}
+</style></head>
+<body><main><div class="panel">
+<a href="index.html">← Back to website</a>
+<h1>Add a portfolio project</h1>
+<p>Prepare the image and project data files here. Then upload both files to your GitHub repository to publish the new project.</p>
+<div class="notice"><b>Important:</b> This GitHub Pages website is static. This tool prepares the files; it does not publish directly to GitHub or store uploads online.</div>
+<form id="projectForm">
+<label>Project title<input id="title" required maxlength="90" placeholder="e.g. Ocean View Villa"></label>
+<label>Project category<select id="category"><option>Residential</option><option>Café / Bakery</option><option>Restaurant / Hospitality</option><option>Retail / Commercial</option><option>Office / Commercial</option><option>Other</option></select></label>
+<label>Short description<textarea id="description" maxlength="220" placeholder="A short description of this project"></textarea></label>
+<label>Project image (JPG, PNG or WebP)<input id="image" type="file" accept="image/jpeg,image/png,image/webp" required></label>
+<label>Existing projects.json (optional — select it to keep earlier additions)<input id="existing" type="file" accept=".json,application/json"></label>
+<button class="btn" type="submit">Prepare project files</button>
+</form>
+<p id="status" class="small" aria-live="polite"></p>
+<div class="notice small"><b>After downloading:</b><ol>
+<li>Put the downloaded image inside <code>assets/projects/</code>.</li>
+<li>Upload the new <code>projects.json</code> to the repository root, replacing the old one.</li>
+<li>Wait for GitHub Pages to publish the update.</li>
+</ol></div>
+</div></main>
+<script>
+const form=document.getElementById('projectForm');
+function download(name,blob){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const title=document.getElementById('title').value.trim();
+ const file=document.getElementById('image').files[0];
+ if(!file)return;
+ if(file.size>12*1024*1024){document.getElementById('status').textContent='Please choose an image smaller than 12 MB.';return;}
+ let items=[];
+ const old=document.getElementById('existing').files[0];
+ if(old){try{items=JSON.parse(await old.text());if(!Array.isArray(items))throw 0;}catch(err){document.getElementById('status').textContent='The existing JSON file is not valid. No files were prepared.';return;}}
+ const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'')||'jpg';
+ const safe=title.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,45)||'new-project';
+ const imageName=safe+'.'+ext;
+ items.push({title,category:document.getElementById('category').value,description:document.getElementById('description').value.trim(),image:'assets/projects/'+imageName});
+ download(imageName,file);
+ download('projects.json',new Blob([JSON.stringify(items,null,2)+'\n'],{type:'application/json'}));
+ document.getElementById('status').textContent='Two files prepared: '+imageName+' and projects.json. Follow the upload steps below.';
+});
+</script></body></html>
